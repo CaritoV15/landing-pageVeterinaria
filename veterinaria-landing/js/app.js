@@ -361,24 +361,43 @@ function findProductoById(id){
 }
 
 async function addOrUpdateProducto(obj){
+  const esNuevo = !obj.id;
+  
   if(!obj.id) {
     obj.id = uuidv4();
     obj.fechaRegistro = new Date().toISOString().split('T')[0];
     inventario.push(obj);
   } else {
     const idx = inventario.findIndex(p => p.id === obj.id);
-    if(idx >= 0) inventario[idx] = obj;
+    if(idx >= 0) {
+      obj.fechaRegistro = inventario[idx].fechaRegistro;
+      inventario[idx] = obj;
+    }
   }
+  
   await saveJSONFile(FILE_INVENTARIO, inventario);
   renderInventarioTable();
   actualizarEstadisticasInventario();
+  
+  // Mostrar toast
+  if(esNuevo) {
+    mostrarToast('¡Producto agregado!', `${obj.nombre} ha sido agregado al inventario`, 'success');
+  } else {
+    mostrarToast('¡Producto actualizado!', `${obj.nombre} ha sido actualizado correctamente`, 'success');
+  }
 }
 
 async function deleteProducto(id){
+  const producto = findProductoById(id);
+  const nombreProducto = producto ? producto.nombre : 'Producto';
+  
   inventario = inventario.filter(p => p.id !== id);
   await saveJSONFile(FILE_INVENTARIO, inventario);
   renderInventarioTable();
   actualizarEstadisticasInventario();
+  
+  // Mostrar toast
+  mostrarToast('¡Producto eliminado!', `${nombreProducto} ha sido eliminado del inventario`, 'danger');
 }
 
 function renderInventarioTable(){
@@ -472,13 +491,54 @@ function editarProducto(id){
 }
 
 function confirmEliminarProducto(id){
-  if(!auth.isLoggedIn()){ 
-    forceLoginModal(); 
-    return; 
+  if(!auth.isLoggedIn()){
+    forceLoginModal();
+    return;
   }
-  if(confirm('¿Eliminar este producto del inventario?')) { 
-    deleteProducto(id); 
+  const producto = findProductoById(id);
+  if(!producto) return;
+
+  // Cambiar mensaje dinamicamente en el modal
+  const msg = document.getElementById("confirmDeleteMessage");
+  msg.textContent = `¿Eliminar "${producto.nombre}" del inventario?`;
+
+  // Guardamos el id temporalmente en el botón
+  const btnConfirm = document.getElementById("btnConfirmDelete");
+  btnConfirm.onclick = function() {
+    deleteProducto(id);
+    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+    modal.hide();
+  };
+
+  // Mostrar el modal
+  new bootstrap.Modal(document.getElementById('confirmDeleteModal')).show();
+}
+
+
+/* ======================
+   TOASTER
+   ====================== */
+function mostrarToast(titulo, mensaje, tipo = 'success') {
+  const toastEl = document.getElementById('toastInventario');
+  const toastTitle = document.getElementById('toastTitle');
+  const toastMessage = document.getElementById('toastMessage');
+  const toastHeader = toastEl.querySelector('.toast-header');
+  
+  toastHeader.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'text-white');
+  
+  if(tipo === 'success') {
+    toastHeader.classList.add('bg-success', 'text-white');
+  } else if(tipo === 'danger') {
+    toastHeader.classList.add('bg-danger', 'text-white');
+  } else if(tipo === 'warning') {
+    toastHeader.classList.add('bg-warning', 'text-white');
   }
+  
+  toastTitle.textContent = titulo;
+  toastMessage.textContent = mensaje;
+  
+  const toast = new bootstrap.Toast(toastEl);
+  toast.show();
 }
 
 /* ======================
@@ -1154,3 +1214,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderCartillaList([]);
   });
 });
+
