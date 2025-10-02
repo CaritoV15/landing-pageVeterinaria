@@ -21,6 +21,28 @@ const FILE_CITAS = 'citas.json';
 const FILE_INVENTARIO = 'inventario.json';
 const FILE_CREDS = 'credenciales.txt';
 
+const botones = document.querySelectorAll('.btn-navbar');
+const carrusel = document.getElementById('carouselContainer');
+const btnInicio = document.getElementById('btnShowInicio');
+
+botones.forEach(boton => {
+  boton.addEventListener('click', () => {
+    //  mostramos el carrusel por aqui 
+    if (boton === btnInicio) {
+      carrusel.classList.remove('oculto');
+      carrusel.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // Si es cualquier otro botón, ocultamos el carrusel :)
+      carrusel.classList.add('oculto');
+      document.getElementById('contenidoPrincipal')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+});
+
+
+
+
+
 /* ======================
    HELPERS: ID / fechas / IDB simple
    ====================== */

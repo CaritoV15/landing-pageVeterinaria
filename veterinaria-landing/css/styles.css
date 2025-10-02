@@ -52,4 +52,17 @@ body {
   object-fit: cover;    
   object-position: center; 
 }
-   
+   /*deslice del carrusel */
+
+   #carouselContainer {
+  max-height: 600px; /* Altura inicial del carrusel */
+  overflow: hidden;
+  transition: max-height 0.8s ease-in-out, opacity 0.8s ease-in-out;
+  opacity: 1;
+}
+
+/* Estado oculto del carrusel */
+#carouselContainer.oculto {
+  max-height: 0;
+  opacity: 0;
+}
